@@ -1,0 +1,47 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci --no-audit --no-fund
+
+      # TYPES FIRST, INCLUDING THE TESTS. A test that does not compile is a test that has stopped
+      # telling you anything, and it fails in a way that looks like "the test is broken" rather than
+      # "the types are broken".
+      - run: npm run check
+
+      - run: npm test
+
+      - run: npm run build
+
+      # THE PACKAGE MUST CONTAIN THE BUILT FILES AND NOT THE TESTS. `npm pack --dry-run` prints the
+      # exact manifest a consumer would download, which is the only place that fact is visible before
+      # publishing.
+      - name: what would be published
+        run: npm pack --dry-run
+
+      - name: the build produced what package.json promises
+        run: |
+          set -euo pipefail
+          for f in dist/index.js dist/index.d.ts dist/protocol.js dist/theme.js dist/card.js; do
+            test -f "$f" || { echo "::error::$f is missing from the build"; exit 1; }
+          done
+          if ls dist/*.test.* >/dev/null 2>&1; then
+            echo "::error::the build emitted test files into dist/"
+            ls dist/*.test.*
+            exit 1
+          fi
+          echo "build output is as declared"

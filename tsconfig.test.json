@@ -1,0 +1,16 @@
+{
+  // THE TYPE CHECK INCLUDES THE TESTS; THE BUILD DOES NOT.
+  //
+  // Two configs rather than one because they answer different questions: `build` asks "what do
+  // consumers receive" and must not emit test files, while `check` asks "is all of this code
+  // well-typed" and must include them — a test that does not compile is a test that has stopped
+  // telling you anything. Folding them into one config forces a choice between shipping vitest
+  // imports to consumers and leaving the tests unchecked.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["vitest/globals"]
+  },
+  "include": ["src"],
+  "exclude": []
+}
