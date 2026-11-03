@@ -1,0 +1,74 @@
+name: release
+
+# Publishes the package to GitHub Packages (npm.pkg.github.com), NOT to npmjs.
+#
+# WHY GHCR/GITHUB PACKAGES AND NOT THE ARTIFACT REGISTRY: this is a UI contract consumed by four
+# repositories in this organisation, all of which already authenticate to GitHub for their own code.
+# One credential they already have beats a second registry with its own token to rotate — and unlike
+# the artifact mirror, a package here is addressable by name and version with no upload script.
+#
+# WHY A TAG AND NOT main: an install pins a version. Publishing on every merge would mean the version
+# in package.json is the only thing distinguishing two builds, and a consumer that resolved "latest"
+# would get whatever landed most recently.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'build and pack without publishing'
+        type: boolean
+        default: true
+
+permissions:
+  # write:packages is what allows the publish; a read-only token fails with 403 at the last step,
+  # after building — which is the worst place to find out.
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@easyagent'
+          cache: npm
+
+      - run: npm ci --no-audit --no-fund
+
+      # THE SAME GATES AS ci.yml, repeated rather than relied upon. A tag can be pushed at a commit
+      # whose CI never ran (a clone of an old branch, a force-push), and publishing an unchecked build
+      # is the one mistake this workflow cannot take back.
+      - run: npm run check
+      - run: npm test
+      - run: npm run build
+
+      # THE TAG MUST MATCH package.json. A tag is what a consumer pins, so a mismatch means the version
+      # they installed is not the one they asked for — and nothing fails at install time.
+      - name: tag matches package.json
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME#v}"
+          pkg="$(node -p "require('./package.json').version")"
+          if [ "$tag" != "$pkg" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match package.json version $pkg"
+            exit 1
+          fi
+          echo "tag $GITHUB_REF_NAME matches package.json $pkg"
+
+      # WHAT A CONSUMER WOULD ACTUALLY GET. Printed before publishing so the log records the file list
+      # for the version that shipped — a package that accidentally carries `src/` or the tests is a
+      # download nobody asked for.
+      - name: what will be published
+        run: npm pack --dry-run
+
+      - name: publish
+        if: github.event_name == 'push' || inputs.dry_run == false
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
