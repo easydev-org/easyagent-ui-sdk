@@ -1,4 +1,9 @@
-import { MSG_THEME, MSG_THEME_READY, asThemeMode, type ThemeMode } from './protocol.js'
+import {
+  asThemeMode,
+  MSG_THEME,
+  MSG_THEME_READY,
+  type ThemeMode,
+} from './protocol.js'
 
 type Listener = (mode: ThemeMode) => void
 

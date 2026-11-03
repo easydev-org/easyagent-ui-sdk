@@ -1,9 +1,9 @@
 import {
+  type CardPayload,
   MSG_CARD_DATA,
   MSG_CARD_HEIGHT,
   MSG_CARD_READY,
   MSG_OPEN_VIEW,
-  type CardPayload,
   type OpenViewRequest,
 } from './protocol.js'
 
@@ -18,7 +18,9 @@ import {
  */
 export function receiveCardData(apply: (p: CardPayload) => void): () => void {
   const onMessage = (ev: MessageEvent): void => {
-    const d = (ev.data ?? null) as ({ type?: string } & Partial<CardPayload>) | null
+    const d = (ev.data ?? null) as
+      | ({ type?: string } & Partial<CardPayload>)
+      | null
     if (d?.type !== MSG_CARD_DATA) return
     apply({
       tool: typeof d.tool === 'string' ? d.tool : '',

@@ -18,6 +18,14 @@ jobs:
 
       - run: npm ci --no-audit --no-fund
 
+      # FORMAT AND LINT, BEFORE THE BUILD. `npm run build` succeeds on misformatted code, so without
+      # this step a formatting problem has no signal at all: it surfaces as churn in a later diff.
+      #
+      # IT FAILS RATHER THAN FIXING. A CI job that rewrites files and passes leaves the diff on a
+      # runner nobody reads; the author has to run `npm run format:fix` and see it in their own diff.
+      - name: format
+        run: npm run format:check
+
       # TYPES FIRST, INCLUDING THE TESTS. A test that does not compile is a test that has stopped
       # telling you anything, and it fails in a way that looks like "the test is broken" rather than
       # "the types are broken".

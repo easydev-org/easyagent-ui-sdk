@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { receiveCardData, reportCardHeight, requestOpenView } from './card.js'
 import {
   MSG_CARD_DATA,
   MSG_CARD_HEIGHT,
@@ -6,8 +7,12 @@ import {
   MSG_OPEN_VIEW,
   MSG_THEME,
 } from './protocol.js'
-import { receiveCardData, reportCardHeight, requestOpenView } from './card.js'
-import { applyTheme, currentTheme, listenForTheme, onThemeChange } from './theme.js'
+import {
+  applyTheme,
+  currentTheme,
+  listenForTheme,
+  onThemeChange,
+} from './theme.js'
 
 /**
  * These tests are about the MESSAGES, because that is the whole contract: an extension and the console
@@ -115,13 +120,32 @@ describe('card data', () => {
     const off = receiveCardData(p => {
       got = p
     })
-    dispatch({ type: MSG_CARD_DATA, tool: 'x', input: { a: 1 }, data: {}, output: 'o', error: '' })
-    expect(got).toEqual({ tool: 'x', input: { a: 1 }, data: {}, output: 'o', error: '' })
+    dispatch({
+      type: MSG_CARD_DATA,
+      tool: 'x',
+      input: { a: 1 },
+      data: {},
+      output: 'o',
+      error: '',
+    })
+    expect(got).toEqual({
+      tool: 'x',
+      input: { a: 1 },
+      data: {},
+      output: 'o',
+      error: '',
+    })
 
     // A malformed payload must still produce a usable card rather than throwing inside the listener,
     // where the failure would be invisible.
     dispatch({ type: MSG_CARD_DATA })
-    expect(got).toEqual({ tool: '', input: {}, data: {}, output: '', error: '' })
+    expect(got).toEqual({
+      tool: '',
+      input: {},
+      data: {},
+      output: '',
+      error: '',
+    })
     off()
   })
 
@@ -183,7 +207,10 @@ describe('open view', () => {
   })
 
   it('posts nothing when there is no parent frame', () => {
-    Object.defineProperty(window, 'parent', { configurable: true, value: window })
+    Object.defineProperty(window, 'parent', {
+      configurable: true,
+      value: window,
+    })
     requestOpenView('/x', 'y')
     expect(posted).toHaveLength(0)
   })
