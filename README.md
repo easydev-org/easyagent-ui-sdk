@@ -152,3 +152,36 @@ npm run check   # types, including the tests
 npm test        # the protocol behaviour, in jsdom
 npm run build   # emits dist/ (tests excluded)
 ```
+
+## Styles
+
+The **design tokens** live here too, so a console and an extension panel cannot disagree about
+`--primary`.
+
+```css
+/* An extension UI — plain CSS, no Tailwind in the bundle. */
+@import '@easydev-org/ext-ui/styles';
+```
+
+```css
+/* The console — the same tokens, plus the Tailwind bridge. */
+@import 'tailwindcss';
+@import '@easydev-org/ext-ui/styles/tailwind';
+```
+
+| entry | what it is |
+|---|---|
+| `styles` | tokens + base element styles. For a consumer without Tailwind. |
+| `styles/tokens` | only the values: colour per theme, spacing, radius, type. |
+| `styles/base` | only the element defaults (`body`, `html`, the card-mode rules). |
+| `styles/tailwind` | `styles` + `@theme inline`, which turns the tokens into `bg-primary` etc. |
+
+**Why the split.** A console needs its palette as utility classes; an extension UI is built into a Go
+binary and cannot afford Tailwind. One file cannot serve both — importing the Tailwind layer from an
+iframe is a parse error. Three layers, two entry points.
+
+**`@theme inline`** makes Tailwind emit `var(--background)` at the use site rather than resolving the
+value at build time, which is what lets one build serve both themes.
+
+**The switch is `data-theme="dark"` on `<html>`.** `prefers-color-scheme` is only consulted when
+nothing has been chosen, via `:root:not([data-theme])`. An explicit choice always wins.

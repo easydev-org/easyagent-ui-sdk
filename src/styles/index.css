@@ -1,0 +1,13 @@
+/*
+ * The whole token system for a PLAIN-CSS consumer: an extension UI, which has no Tailwind.
+ *
+ *   @import '@easydev-org/ext-ui/styles';
+ *
+ * A console imports `@easydev-org/ext-ui/styles/tailwind` instead, which pulls this in and adds the
+ * bridge. Importing this file from a Tailwind build would leave `bg-primary` undefined — the palette
+ * would be right and the utility classes would not exist — which is a confusing failure, so the two
+ * entry points are separate on purpose.
+ */
+
+@import './tokens.css';
+@import './base.css';

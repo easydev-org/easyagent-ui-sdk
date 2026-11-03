@@ -1,0 +1,84 @@
+/*
+ * BASE — the element defaults both a console and a panel need, and nothing else.
+ *
+ * EVERYTHING HERE IS A DEFAULT, NOT A COMPONENT RULE. If a selector is not `html`, `body`, `*` or a
+ * single utility class, it does not belong in this file: a shared base that styles `.card` would be a
+ * component library, and the console's components are Tailwind while a panel's are hand-written CSS
+ * precisely because it cannot afford Tailwind.
+ *
+ * THE FONT SIZE IS ON `body`, NOT ON `html`. Tailwind's type scale is rem-based, so a root font-size
+ * silently rescales `text-sm` and `text-xl` together — the console used to set 14px on `html` and the
+ * whole UI read about 12% smaller than the native clients. Keeping the browser default (1rem = 16px)
+ * and sizing `body` explicitly gives the same 14px body text without moving every other step.
+ */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  line-height: var(--line-body);
+  /* A panel is embedded in a scrolling transcript; letting the document itself bounce past its end
+     makes the host's scroll look broken. */
+  overscroll-behavior: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+/**
+ * A CARD IS AS TALL AS ITS CONTENT, NOT AS TALL AS THE FRAME.
+ *
+ * `height: 100%` is right for the full-page UI, which fills the tab. In a card it fights the host: the
+ * frame starts at a placeholder height, `body` stretches to fill it, the host measures that stretched
+ * height, and the reader sees a pale block that shrinks once the real content arrives — with a
+ * scrollbar appearing in between.
+ *
+ * `card-mode` is set on <html> by the page's own bootstrap from the same `#/card/...` route the app
+ * uses, so it is applied before first paint and there is no unstyled frame.
+ *
+ * THE MOUNT POINT IS NOT NAMED HERE. `#app` is this app's own convention, not the contract's, and a
+ * shared base that hard-codes a selector it does not own is how a package starts silently reaching
+ * into its consumers. A page that needs its mount point to follow should style it itself — one line,
+ * next to the element it belongs to.
+ */
+html.card-mode,
+html.card-mode body {
+  height: auto;
+  min-height: 0;
+  /* The host sizes the frame; this document must not also offer its own scrollbar. */
+  overflow: hidden;
+}
+
+/* Plain-CSS equivalents of the Tailwind utilities, for a consumer that has no Tailwind. Named with a
+   `t-` prefix so they cannot be confused with the generated `text-*` utilities. */
+.t-micro {
+  font-size: var(--text-micro);
+  line-height: var(--line-micro);
+}
+
+.t-meta {
+  font-size: var(--text-meta);
+  line-height: var(--line-meta);
+}
+
+.t-body {
+  font-size: var(--text-body);
+  line-height: var(--line-body);
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+.muted {
+  color: var(--muted-foreground);
+}
