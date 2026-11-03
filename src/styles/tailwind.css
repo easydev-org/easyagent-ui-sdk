@@ -1,0 +1,87 @@
+/*
+ * THE TAILWIND BRIDGE — layer 3 of the token system, and the only file here that knows Tailwind exists.
+ *
+ * WHY IT IS SEPARATE FROM tokens.css. The console is styled with Tailwind and needs its palette to
+ * arrive as utility classes (`bg-primary`, `text-muted-foreground`). An extension UI is built into a Go
+ * binary, cannot afford Tailwind, and needs the same palette as plain CSS variables. One file cannot
+ * serve both: importing this one from an iframe's stylesheet would be a parse error, and importing
+ * tokens.css from the console would leave `bg-primary` undefined.
+ *
+ * `@theme inline` IS NOT DECORATION. `inline` makes Tailwind emit `var(--background)` at the use site
+ * instead of resolving the value at build time — which is what lets a single build serve both themes.
+ * Without it the dark palette would never apply: every utility would carry the light hex it was
+ * compiled with.
+ *
+ * `--color-*: initial` CLEARS TAILWIND'S DEFAULT PALETTE, so `bg-red-500` stops existing. That is
+ * deliberate: a colour that is not in the token set should be a build error rather than a value
+ * somebody picked, and it is what makes "the console and the panels are one product" checkable.
+ */
+
+@import './tokens.css';
+@import './base.css';
+
+@theme inline {
+  --color-*: initial;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+
+  /* THE TYPE SCALE IS DELIBERATELY ABSENT FROM THIS BLOCK.
+   *
+   * Tailwind derives `--radius-sm`, `--radius-md`, `--radius-lg` and `--font-sans` from its own theme
+   * namespace, so writing `--radius-sm: var(--radius-sm)` here does NOT override a value — it declares
+   * a variable in terms of itself, and the emitted CSS contains that circular pair alongside the real
+   * one from tokens.css. It happens to resolve today because of declaration order, which is exactly
+   * the kind of thing that breaks silently when a build reorders a file.
+   *
+   * tokens.css already defines them on `:root`, and Tailwind's utilities read the same names, so there
+   * is nothing to bridge. Only names that DIFFER need a line above (`--color-primary` for `--primary`).
+   */
+
+  /* Additive: `p-3` and `--sp-md` both mean 12px, so `--sp-*` is not bridged. Two ways to write the
+     same number in one class attribute is how a codebase ends up with three of each. */
+}
+
+/* The type scale as utilities, because `text-[10px]` at every call site is worse than a name. */
+@utility text-micro {
+  font-size: var(--text-micro);
+  line-height: var(--line-micro);
+}
+
+@utility text-meta {
+  font-size: var(--text-meta);
+  line-height: var(--line-meta);
+}
+
+@utility text-body {
+  font-size: var(--text-body);
+  line-height: var(--line-body);
+}
