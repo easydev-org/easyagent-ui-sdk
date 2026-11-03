@@ -82,8 +82,17 @@ export function listenForTheme(): () => void {
     applyTheme(d.theme)
   }
   window.addEventListener('message', onMessage)
-  // Start from the DOM: the page's bootstrap has already applied `?theme=`.
-  current = asThemeMode(document.documentElement.dataset['theme']) ?? 'light'
+  // START FROM THE DOM, AND ANNOUNCE IT. The page's bootstrap has already applied `?theme=`, so the
+  // document's own attribute is the truth here — reading the URL again would be a second chance to
+  // disagree.
+  //
+  // IT GOES THROUGH `applyTheme` RATHER THAN ASSIGNING `current`. Assigning is silent, and a listener
+  // registered BEFORE this call has already been handed the default: a Svelte module's top-level
+  // `onThemeChange` runs while the imports are evaluated, which is before any component's `onMount`
+  // gets to call `connectToHost()`. That panel would sit in light mode on a dark console until
+  // somebody toggled the theme — with nothing wrong in either program, which is why the silent
+  // version survived as long as it did.
+  applyTheme(document.documentElement.dataset['theme'])
   return () => {
     window.removeEventListener('message', onMessage)
   }
