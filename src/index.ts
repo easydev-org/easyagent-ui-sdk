@@ -18,15 +18,21 @@
  * a token, which is the one thing the frame must not have.
  */
 
+export {
+  extensionId,
+  receiveCardData,
+  reportCardHeight,
+  requestOpenView,
+  sessionId,
+} from './card.js'
 export * from './protocol.js'
 export {
-  applyTheme,
   announceThemeReady,
+  applyTheme,
   currentTheme,
   listenForTheme,
   onThemeChange,
 } from './theme.js'
-export { extensionId, receiveCardData, reportCardHeight, requestOpenView, sessionId } from './card.js'
 
 import { announceThemeReady, listenForTheme } from './theme.js'
 

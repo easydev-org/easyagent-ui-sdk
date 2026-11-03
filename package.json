@@ -38,9 +38,12 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "check": "tsc -p tsconfig.test.json --noEmit",
+    "format:check": "biome check .",
+    "format:fix": "biome check --write .",
     "test": "vitest run"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.6.4",
     "@vitest/coverage-v8": "^2.1.8",
     "jsdom": "^25.0.1",
     "typescript": "^5.7.2",

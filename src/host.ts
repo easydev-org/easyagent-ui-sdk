@@ -66,19 +66,29 @@ export function cardHeightFrom(data: unknown): number {
   if (data === null || typeof data !== 'object') return 0
   const d = data as { type?: unknown; height?: unknown }
   if (d.type !== MSG_CARD_HEIGHT) return 0
-  return typeof d.height === 'number' && Number.isFinite(d.height) && d.height > 0
+  return typeof d.height === 'number' &&
+    Number.isFinite(d.height) &&
+    d.height > 0
     ? Math.ceil(d.height)
     : 0
 }
 
 /** True when `data` is the frame announcing it can receive card data. */
 export function isCardReady(data: unknown): boolean {
-  return data !== null && typeof data === 'object' && (data as { type?: unknown }).type === MSG_CARD_READY
+  return (
+    data !== null &&
+    typeof data === 'object' &&
+    (data as { type?: unknown }).type === MSG_CARD_READY
+  )
 }
 
 /** True when `data` is the frame announcing it can receive theme messages. */
 export function isThemeReady(data: unknown): boolean {
-  return data !== null && typeof data === 'object' && (data as { type?: unknown }).type === MSG_THEME_READY
+  return (
+    data !== null &&
+    typeof data === 'object' &&
+    (data as { type?: unknown }).type === MSG_THEME_READY
+  )
 }
 
 /**
@@ -87,7 +97,9 @@ export function isThemeReady(data: unknown): boolean {
  * BUILT HERE rather than in the console so the `type` discriminator cannot be forgotten: a payload
  * without it is a card that renders nothing, with no error on either side.
  */
-export function cardDataMessage(p: CardPayload): CardPayload & { type: typeof MSG_CARD_DATA } {
+export function cardDataMessage(
+  p: CardPayload,
+): CardPayload & { type: typeof MSG_CARD_DATA } {
   return { type: MSG_CARD_DATA, ...p }
 }
 
@@ -110,7 +122,12 @@ export function cardSrc(
 }
 
 /** The panel URL — the same frame, without a card route. */
-export function panelSrc(ext: string, route: string, theme: string, session = ''): string {
+export function panelSrc(
+  ext: string,
+  route: string,
+  theme: string,
+  session = '',
+): string {
   const q = new URLSearchParams({ theme })
   if (session !== '') q.set('session', session)
   const r = route.startsWith('/') ? route : `/${route}`

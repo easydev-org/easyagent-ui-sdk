@@ -5,11 +5,11 @@ import {
   cardSrc,
   isCardReady,
   isThemeReady,
-  openViewFrom,
-  panelSrc,
   MSG_CARD_DATA,
   MSG_CARD_HEIGHT,
   MSG_OPEN_VIEW,
+  openViewFrom,
+  panelSrc,
 } from '../src/host.js'
 
 /**
@@ -22,26 +22,46 @@ import {
 
 describe('openViewFrom', () => {
   it('accepts a well-formed request', () => {
-    const got = openViewFrom({ type: MSG_OPEN_VIEW, ext: 'gitdev', route: '/files/a/b', title: 'Files' })
-    expect(got).toEqual({ type: MSG_OPEN_VIEW, ext: 'gitdev', route: '/files/a/b', title: 'Files' })
+    const got = openViewFrom({
+      type: MSG_OPEN_VIEW,
+      ext: 'gitdev',
+      route: '/files/a/b',
+      title: 'Files',
+    })
+    expect(got).toEqual({
+      type: MSG_OPEN_VIEW,
+      ext: 'gitdev',
+      route: '/files/a/b',
+      title: 'Files',
+    })
   })
 
   it('defaults a missing title rather than dropping the request', () => {
     // THE HOST CAN DERIVE A TITLE, so a frame that omits one must not lose the navigation.
-    const got = openViewFrom({ type: MSG_OPEN_VIEW, ext: 'gitdev', route: '/x' })
+    const got = openViewFrom({
+      type: MSG_OPEN_VIEW,
+      ext: 'gitdev',
+      route: '/x',
+    })
     expect(got?.title).toBe('')
     expect(got?.route).toBe('/x')
   })
 
   it('refuses an empty ext or route', () => {
     // `/ext//` is a blank screen with no error; ignoring the message is the better answer.
-    expect(openViewFrom({ type: MSG_OPEN_VIEW, ext: '', route: '/x' })).toBeNull()
-    expect(openViewFrom({ type: MSG_OPEN_VIEW, ext: 'gitdev', route: '' })).toBeNull()
+    expect(
+      openViewFrom({ type: MSG_OPEN_VIEW, ext: '', route: '/x' }),
+    ).toBeNull()
+    expect(
+      openViewFrom({ type: MSG_OPEN_VIEW, ext: 'gitdev', route: '' }),
+    ).toBeNull()
     expect(openViewFrom({ type: MSG_OPEN_VIEW, ext: 'gitdev' })).toBeNull()
   })
 
   it('refuses the wrong message type and non-objects', () => {
-    expect(openViewFrom({ type: MSG_CARD_DATA, ext: 'a', route: '/x' })).toBeNull()
+    expect(
+      openViewFrom({ type: MSG_CARD_DATA, ext: 'a', route: '/x' }),
+    ).toBeNull()
     expect(openViewFrom(null)).toBeNull()
     expect(openViewFrom('nope')).toBeNull()
     expect(openViewFrom(42)).toBeNull()
@@ -80,7 +100,13 @@ describe('cardDataMessage', () => {
   it('adds the discriminator the frame validates', () => {
     // A PAYLOAD WITHOUT `type` RENDERS NOTHING with no error on either side, which is why the host
     // builds it here rather than at each call site.
-    const msg = cardDataMessage({ tool: 't', input: {}, data: {}, output: '', error: '' })
+    const msg = cardDataMessage({
+      tool: 't',
+      input: {},
+      data: {},
+      output: '',
+      error: '',
+    })
     expect(msg.type).toBe(MSG_CARD_DATA)
     expect(msg.tool).toBe('t')
   })
@@ -88,7 +114,9 @@ describe('cardDataMessage', () => {
 
 describe('url builders', () => {
   it('puts the theme in the query so the frame can apply it before first paint', () => {
-    expect(cardSrc('gitdev', 'pr', 'dark')).toBe('/ext/gitdev/?theme=dark#/card/pr')
+    expect(cardSrc('gitdev', 'pr', 'dark')).toBe(
+      '/ext/gitdev/?theme=dark#/card/pr',
+    )
   })
 
   it('carries the session when there is one, and omits it when there is not', () => {
@@ -97,7 +125,9 @@ describe('url builders', () => {
   })
 
   it('normalises a route for a panel and encodes a template for a card', () => {
-    expect(panelSrc('sandbox', 'jobs/1', 'dark')).toBe('/ext/sandbox/?theme=dark#/jobs/1')
+    expect(panelSrc('sandbox', 'jobs/1', 'dark')).toBe(
+      '/ext/sandbox/?theme=dark#/jobs/1',
+    )
     // A template with a slash must not become a second path segment.
     expect(cardSrc('gitdev', 'a/b', 'light')).toContain('/card/a%2Fb')
   })
