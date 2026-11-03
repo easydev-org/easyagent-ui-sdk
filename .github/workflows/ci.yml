@@ -42,6 +42,28 @@ jobs:
                    dist/protocol.js dist/theme.js dist/card.js; do
             test -f "$f" || { echo "::error::$f is missing from the build"; exit 1; }
           done
+          # THE STYLESHEETS ARE NOT BUILT — they are copied straight from src/, which is exactly why
+          # they need a check here: a file that is only referenced by an `exports` path cannot be
+          # caught by the compiler, and a consumer's build fails with "cannot resolve" instead.
+          for f in src/styles/index.css src/styles/tokens.css src/styles/base.css \
+                   src/styles/tailwind.css; do
+            test -f "$f" || { echo "::error::$f is missing"; exit 1; }
+          done
+          # EVERY EXPORTED STYLE PATH MUST EXIST. Read them from package.json rather than repeating
+          # the list: a fourth entry point added there and forgotten here is the failure this catches.
+          node -e '
+            const fs = require("node:fs")
+            const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"))
+            const missing = Object.entries(pkg.exports)
+              .filter(([k, v]) => typeof v === "string" && v.endsWith(".css"))
+              .filter(([, v]) => !fs.existsSync(v))
+              .map(([k, v]) => `${k} -> ${v}`)
+            if (missing.length) {
+              console.error("exports point at files that do not exist:\n" + missing.join("\n"))
+              process.exit(1)
+            }
+            console.log("every exported stylesheet exists")
+          '
           if ls dist/*.test.* >/dev/null 2>&1; then
             echo "::error::the build emitted test files into dist/"
             ls dist/*.test.*
