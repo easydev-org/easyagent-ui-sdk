@@ -36,7 +36,10 @@ jobs:
       - name: the build produced what package.json promises
         run: |
           set -euo pipefail
-          for f in dist/index.js dist/index.d.ts dist/protocol.js dist/theme.js dist/card.js; do
+          # BOTH ENTRIES, because package.json exports them and a missing host.js would only fail in
+          # the console's build — a repository this one's CI never touches.
+          for f in dist/index.js dist/index.d.ts dist/host.js dist/host.d.ts \
+                   dist/protocol.js dist/theme.js dist/card.js; do
             test -f "$f" || { echo "::error::$f is missing from the build"; exit 1; }
           done
           if ls dist/*.test.* >/dev/null 2>&1; then

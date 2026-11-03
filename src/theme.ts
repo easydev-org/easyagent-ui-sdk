@@ -1,7 +1,4 @@
-import { MSG_THEME, MSG_THEME_READY } from './protocol.js'
-
-/** The colour scheme the frame should use. */
-export type ThemeMode = 'light' | 'dark'
+import { MSG_THEME, MSG_THEME_READY, asThemeMode, type ThemeMode } from './protocol.js'
 
 type Listener = (mode: ThemeMode) => void
 
@@ -31,11 +28,12 @@ export function currentTheme(): ThemeMode {
  * Exported so a page's bootstrap can call it for the URL value before the module graph finishes —
  * that is the whole point of the URL channel.
  */
-export function applyTheme(mode: string): void {
-  if (mode !== 'light' && mode !== 'dark') return
-  current = mode
-  document.documentElement.dataset['theme'] = mode
-  for (const l of listeners) l(mode)
+export function applyTheme(mode: unknown): void {
+  const m = asThemeMode(mode)
+  if (m === null) return
+  current = m
+  document.documentElement.dataset['theme'] = m
+  for (const l of listeners) l(m)
 }
 
 /**
@@ -47,7 +45,9 @@ export function applyTheme(mode: string): void {
 export function onThemeChange(fn: Listener): () => void {
   listeners.add(fn)
   fn(current)
-  return () => listeners.delete(fn)
+  return () => {
+    listeners.delete(fn)
+  }
 }
 
 /**
@@ -55,6 +55,11 @@ export function onThemeChange(fn: Listener): () => void {
  *
  * WITHOUT THIS THE HOST DOES NOT KNOW WHEN TO SEND ONE. It cannot post into a document that has not
  * loaded, and polling would be a timer per frame forever.
+ *
+ * A HOST THAT BROADCASTS DOES NOT NEED THIS, which is why its absence is easy to miss: the panel keeps
+ * working while the console happens to send to every frame on every change, and stops the day the
+ * console sends only to frames that announced themselves. Saying "ready" is what makes the panel
+ * independent of that implementation detail.
  */
 export function announceThemeReady(): void {
   window.parent?.postMessage({ type: MSG_THEME_READY }, '*')
@@ -72,12 +77,14 @@ export function listenForTheme(): () => void {
     // `/ext/<id>/`), and an unrelated origin has nothing to gain from setting a colour scheme. What
     // matters is validating the BODY: anything that is not one of the two values is ignored, so a
     // hostile message can do nothing a legitimate one could not.
-    const d = ev.data as { type?: string; theme?: unknown } | null
+    const d = ev.data as { type?: unknown; theme?: unknown } | null
     if (d?.type !== MSG_THEME) return
-    applyTheme(String(d.theme))
+    applyTheme(d.theme)
   }
   window.addEventListener('message', onMessage)
   // Start from the DOM: the page's bootstrap has already applied `?theme=`.
-  current = (document.documentElement.dataset['theme'] as ThemeMode) ?? 'light'
-  return () => window.removeEventListener('message', onMessage)
+  current = asThemeMode(document.documentElement.dataset['theme']) ?? 'light'
+  return () => {
+    window.removeEventListener('message', onMessage)
+  }
 }

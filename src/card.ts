@@ -87,3 +87,14 @@ export function extensionId(): string {
   const m = /^\/ext\/([a-z0-9-]+)/.exec(window.location.pathname)
   return m?.[1] ?? ''
 }
+
+/**
+ * The session this frame was mounted for, from `?session=`.
+ *
+ * THE FRAME'S OWN API CLIENT READS THIS to scope its requests. Empty means "not scoped to a
+ * conversation", which is what a panel opened from the extension shelf has — and a card always has
+ * one, because the host builds its URL.
+ */
+export function sessionId(): string {
+  return new URLSearchParams(window.location.search).get('session') ?? ''
+}

@@ -7,6 +7,15 @@
  * with no error on either side. Both ends import from here now, so a rename is a compile error in both
  * rather than a silent mismatch in one.
  *
+ * BOTH ENDS IMPORT THIS FILE, and that is the point of the two entry points:
+ *
+ *   @easyagent/ext-ui          the FRAME side — what an extension's own UI calls
+ *   @easyagent/ext-ui/host     the HOST side — constants and validators for the console
+ *
+ * The split is not cosmetic. The frame SENDS card-height and open-view and RECEIVES card-data the host
+ * SENDS; each side needs a different half, and a package that hands both halves to both sides invites
+ * an extension to call `openViewFrom` on its own outgoing message.
+ *
  * EVERY MESSAGE IS A STRING `type` PLUS A FLAT BODY. No envelopes, no versioning layer: this is a
  * postMessage channel between two windows that already trust each other's origin, and the payload is
  * a few hundred bytes of a tool result.
@@ -64,4 +73,12 @@ export interface OpenViewRequest {
   route: string
   /** A title for the host's header. */
   title: string
+}
+
+/** The colour scheme a frame should use. */
+export type ThemeMode = 'light' | 'dark'
+
+/** Narrow an unknown value to a theme, or null. */
+export function asThemeMode(v: unknown): ThemeMode | null {
+  return v === 'light' || v === 'dark' ? v : null
 }
