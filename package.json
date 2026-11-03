@@ -1,6 +1,6 @@
 {
   "name": "@easydev-org/ext-ui",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "The contract between an EasyAgent extension UI (running in an iframe) and the console that mounts it. Two entry points: the frame's, and the host's.",
   "license": "MIT",
   "type": "module",

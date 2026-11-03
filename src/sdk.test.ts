@@ -28,7 +28,13 @@ beforeEach(() => {
     configurable: true,
     value: { postMessage: (m: Record<string, unknown>) => posted.push(m) },
   })
+  // THE MODULE KEEPS THE LAST THEME FOR THE PROCESS, which is the point of it in a browser — but it
+  // means one test's `dark` is the next test's starting value. `applyTheme('light')` is how that
+  // resets: writing `data-theme` alone no longer clears `current`, because adopting the document's
+  // attribute is now what announces it (see `listenForTheme`).
+  applyTheme('light')
   document.documentElement.removeAttribute('data-theme')
+  document.documentElement.dataset['theme'] = 'light'
 })
 
 afterEach(() => {
@@ -53,6 +59,23 @@ describe('theme', () => {
     const off = listenForTheme()
     expect(currentTheme()).toBe('dark')
     off()
+  })
+
+  it('TELLS an earlier subscriber about the adopted theme', () => {
+    // THE ORDER IS THE POINT: a Svelte module's top-level `onThemeChange` runs while the imports are
+    // evaluated, so it lands BEFORE the component's `onMount` calls `connectToHost()`. If adopting the
+    // URL's theme were a silent assignment, that subscriber would have been handed the default and
+    // never corrected — a panel in light mode on a dark console, with nothing wrong on either side.
+    document.documentElement.dataset['theme'] = 'dark'
+    const seen: string[] = []
+    const offSub = onThemeChange(m => {
+      seen.push(m)
+    })
+    const offListen = listenForTheme()
+
+    expect(seen).toEqual(['light', 'dark'])
+    offListen()
+    offSub()
   })
 
   it('updates on a host message, and tells subscribers', () => {
