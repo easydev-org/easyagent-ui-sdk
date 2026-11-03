@@ -1,5 +1,5 @@
 /**
- * `@easyagent/ext-ui` — the FRAME side of the contract between an extension UI and the console that
+ * `@easydev-org/ext-ui` — the FRAME side of the contract between an extension UI and the console that
  * mounts it.
  *
  * THREE THINGS AN EXTENSION NEEDS, and nothing else:
@@ -8,7 +8,7 @@
  *   * its card's data, when it renders one;
  *   * a way to ask the host to open a full view, because a card cannot navigate.
  *
- * THE HOST SIDE IS A SEPARATE ENTRY POINT (`@easyagent/ext-ui/host`). A console needs the constants and
+ * THE HOST SIDE IS A SEPARATE ENTRY POINT (`@easydev-org/ext-ui/host`). A console needs the constants and
  * the validators for what it receives; giving it `receiveCardData` as well would let a console call a
  * function that posts to its own parent.
  *
