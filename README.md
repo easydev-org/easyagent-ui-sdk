@@ -1,4 +1,4 @@
-# @easyagent/ext-ui
+# @easydev-org/ext-ui
 
 The contract between an **EasyAgent extension UI** and the **console that mounts it**.
 
@@ -21,8 +21,37 @@ a compile error in both rather than a silent mismatch in one.
 ## Install
 
 ```sh
-npm install @easyagent/ext-ui
+npm install @easydev-org/ext-ui
 ```
+
+It is published to **GitHub Packages**, not npmjs. The consumer needs:
+
+```
+@easydev-org:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}
+```
+
+## Two entry points
+
+```
+@easydev-org/ext-ui          the FRAME side — what an extension's own UI imports
+@easydev-org/ext-ui/host     the HOST side — what the console imports
+```
+
+**The split is not cosmetic.** The frame sends `card-height` and `open-view` and receives `card-data`;
+the host sends `card-data` and receives the other two. Each side needs a different half, and giving both
+halves to both sides invites an extension to call `openViewFrom` on its own outgoing message.
+
+| | frame (`/`) | host (`/host`) |
+|---|---|---|
+| `MSG_*` constants | ✅ | ✅ |
+| `connectToHost`, `applyTheme`, `onThemeChange` | ✅ | — |
+| `receiveCardData`, `reportCardHeight`, `requestOpenView` | ✅ | — |
+| `openViewFrom`, `cardHeightFrom`, `isCardReady`, `isThemeReady` | — | ✅ |
+| `cardDataMessage`, `cardSrc`, `panelSrc` | — | ✅ |
+
+**Validation is asymmetric on purpose:** each side validates what it *receives* and trusts what it
+*sends*.
 
 ## The card
 
@@ -31,7 +60,7 @@ A card renders ONE tool call. The console picks it by the `template` the tool de
 
 ```svelte
 <script lang="ts">
-  import { receiveCardData, reportCardHeight, requestOpenView, type CardPayload } from '@easyagent/ext-ui'
+  import { receiveCardData, reportCardHeight, requestOpenView, type CardPayload } from '@easydev-org/ext-ui'
   import { onMount } from 'svelte'
 
   let payload = $state<CardPayload | null>(null)
@@ -64,7 +93,7 @@ console sizes nothing and a stray height is noise.
 
 ```svelte
 <script lang="ts">
-  import { connectToHost, onThemeChange } from '@easyagent/ext-ui'
+  import { connectToHost, onThemeChange } from '@easydev-org/ext-ui'
 
   // Once, at module scope: starts listening for the console's theme messages.
   connectToHost()
@@ -80,7 +109,7 @@ dark mode never flashes light) and a `postMessage` on every change (so a switch 
 is not ignored). `connectToHost` handles the second; your page's bootstrap should handle the first:
 
 ```ts
-import { applyTheme } from '@easyagent/ext-ui'
+import { applyTheme } from '@easydev-org/ext-ui'
 applyTheme(new URLSearchParams(location.search).get('theme') ?? 'light')
 ```
 

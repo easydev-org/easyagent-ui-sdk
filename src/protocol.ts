@@ -9,8 +9,8 @@
  *
  * BOTH ENDS IMPORT THIS FILE, and that is the point of the two entry points:
  *
- *   @easyagent/ext-ui          the FRAME side — what an extension's own UI calls
- *   @easyagent/ext-ui/host     the HOST side — constants and validators for the console
+ *   @easydev-org/ext-ui          the FRAME side — what an extension's own UI calls
+ *   @easydev-org/ext-ui/host     the HOST side — constants and validators for the console
  *
  * The split is not cosmetic. The frame SENDS card-height and open-view and RECEIVES card-data the host
  * SENDS; each side needs a different half, and a package that hands both halves to both sides invites
