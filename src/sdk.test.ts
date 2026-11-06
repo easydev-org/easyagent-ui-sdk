@@ -7,12 +7,7 @@ import {
   MSG_OPEN_VIEW,
   MSG_THEME,
 } from './protocol.js'
-import {
-  applyTheme,
-  currentTheme,
-  listenForTheme,
-  onThemeChange,
-} from './theme.js'
+import { applyTheme, currentTheme, listenForTheme, onThemeChange } from './theme.js'
 
 /**
  * These tests are about the MESSAGES, because that is the whole contract: an extension and the console

@@ -18,13 +18,25 @@ jobs:
 
       - run: npm ci --no-audit --no-fund
 
-      # FORMAT AND LINT, BEFORE THE BUILD. `npm run build` succeeds on misformatted code, so without
-      # this step a formatting problem has no signal at all: it surfaces as churn in a later diff.
+      # FORMAT: PRETTIER, AND ONLY PRETTIER.
       #
-      # IT FAILS RATHER THAN FIXING. A CI job that rewrites files and passes leaves the diff on a
-      # runner nobody reads; the author has to run `npm run format:fix` and see it in their own diff.
+      # ONE TOOL OWNS FORMATTING. This repository used biome for both formatting and linting, so a
+      # formatting difference and a real code problem arrived through the same command — and `biome check`
+      # rewriting a file was indistinguishable from it reporting one.
+      #
+      # Prettier is the formatter every other repository in this org now uses, so one configuration
+      # produces one style across all of them. Biome's formatter is disabled in biome.json, which means
+      # it cannot disagree.
+      #
+      # IT FAILS RATHER THAN FIXING. A job that rewrites files and passes leaves the diff on a runner
+      # nobody reads; the author has to run `npm run format:fix` and see it in their own diff.
       - name: format
         run: npm run format:check
+
+      # LINT IS A SEPARATE QUESTION FROM FORMAT, and it stays biome's: "is this code wrong" — an unused
+      # import, an implicit any — rather than "does this code look like the rest".
+      - name: lint
+        run: npm run lint
 
       # TYPES FIRST, INCLUDING THE TESTS. A test that does not compile is a test that has stopped
       # telling you anything, and it fails in a way that looks like "the test is broken" rather than

@@ -5,9 +5,9 @@ The contract between an **EasyAgent extension UI** and the **console that mounts
 An extension's interface runs in an `<iframe>` on the console's own origin (`/ext/<id>/`). An iframe has
 its own `window` and its own `<html>`, so three things that look free are not:
 
-* **the theme** does not reach it;
-* **its height** is not known to the console, which owns the frame;
-* **a tool result** arrives from the console, not from the extension's API.
+- **the theme** does not reach it;
+- **its height** is not known to the console, which owns the frame;
+- **a tool result** arrives from the console, not from the extension's API.
 
 This package is those three channels, and nothing else.
 
@@ -42,16 +42,16 @@ It is published to **GitHub Packages**, not npmjs. The consumer needs:
 the host sends `card-data` and receives the other two. Each side needs a different half, and giving both
 halves to both sides invites an extension to call `openViewFrom` on its own outgoing message.
 
-| | frame (`/`) | host (`/host`) |
-|---|---|---|
-| `MSG_*` constants | ✅ | ✅ |
-| `connectToHost`, `applyTheme`, `onThemeChange` | ✅ | — |
-| `receiveCardData`, `reportCardHeight`, `requestOpenView` | ✅ | — |
-| `openViewFrom`, `cardHeightFrom`, `isCardReady`, `isThemeReady` | — | ✅ |
-| `cardDataMessage`, `cardSrc`, `panelSrc` | — | ✅ |
+|                                                                 | frame (`/`) | host (`/host`) |
+| --------------------------------------------------------------- | ----------- | -------------- |
+| `MSG_*` constants                                               | ✅          | ✅             |
+| `connectToHost`, `applyTheme`, `onThemeChange`                  | ✅          | —              |
+| `receiveCardData`, `reportCardHeight`, `requestOpenView`        | ✅          | —              |
+| `openViewFrom`, `cardHeightFrom`, `isCardReady`, `isThemeReady` | —           | ✅             |
+| `cardDataMessage`, `cardSrc`, `panelSrc`                        | —           | ✅             |
 
-**Validation is asymmetric on purpose:** each side validates what it *receives* and trusts what it
-*sends*.
+**Validation is asymmetric on purpose:** each side validates what it _receives_ and trusts what it
+_sends_.
 
 ## The card
 
@@ -132,14 +132,14 @@ offered a fetch would be offering a token.
 
 Every message is `{ type: string, ...body }`, posted with `targetOrigin: '*'`.
 
-| Direction | `type` | Body |
-|---|---|---|
-| console → frame | `easyagent:theme` | `theme: 'light' \| 'dark'` |
-| frame → console | `easyagent:theme:ready` | — |
-| frame → console | `easyagent:card-ready` | — |
-| console → frame | `easyagent:card-data` | `CardPayload` |
-| frame → console | `easyagent:card-height` | `height: number` |
-| frame → console | `easyagent:open-view` | `ext, route, title` |
+| Direction       | `type`                  | Body                       |
+| --------------- | ----------------------- | -------------------------- |
+| console → frame | `easyagent:theme`       | `theme: 'light' \| 'dark'` |
+| frame → console | `easyagent:theme:ready` | —                          |
+| frame → console | `easyagent:card-ready`  | —                          |
+| console → frame | `easyagent:card-data`   | `CardPayload`              |
+| frame → console | `easyagent:card-height` | `height: number`           |
+| frame → console | `easyagent:open-view`   | `ext, route, title`        |
 
 The constants are exported from this package, so the other end should import them rather than retype
 them.
@@ -169,11 +169,11 @@ The **design tokens** live here too, so a console and an extension panel cannot 
 @import '@easydev-org/ext-ui/styles/tailwind';
 ```
 
-| entry | what it is |
-|---|---|
-| `styles` | tokens + base element styles. For a consumer without Tailwind. |
-| `styles/tokens` | only the values: colour per theme, spacing, radius, type. |
-| `styles/base` | only the element defaults (`body`, `html`, the card-mode rules). |
+| entry             | what it is                                                                |
+| ----------------- | ------------------------------------------------------------------------- |
+| `styles`          | tokens + base element styles. For a consumer without Tailwind.            |
+| `styles/tokens`   | only the values: colour per theme, spacing, radius, type.                 |
+| `styles/base`     | only the element defaults (`body`, `html`, the card-mode rules).          |
 | `styles/tailwind` | `styles` + `@theme inline`, which turns the tokens into `bg-primary` etc. |
 
 **Why the split.** A console needs its palette as utility classes; an extension UI is built into a Go

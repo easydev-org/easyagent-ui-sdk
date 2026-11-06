@@ -18,9 +18,7 @@ import {
  */
 export function receiveCardData(apply: (p: CardPayload) => void): () => void {
   const onMessage = (ev: MessageEvent): void => {
-    const d = (ev.data ?? null) as
-      | ({ type?: string } & Partial<CardPayload>)
-      | null
+    const d = (ev.data ?? null) as ({ type?: string } & Partial<CardPayload>) | null
     if (d?.type !== MSG_CARD_DATA) return
     apply({
       tool: typeof d.tool === 'string' ? d.tool : '',

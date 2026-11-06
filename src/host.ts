@@ -16,7 +16,6 @@ import {
   MSG_CARD_HEIGHT,
   MSG_CARD_READY,
   MSG_OPEN_VIEW,
-  MSG_THEME,
   MSG_THEME_READY,
   type OpenViewRequest,
 } from './protocol.js'
@@ -66,9 +65,7 @@ export function cardHeightFrom(data: unknown): number {
   if (data === null || typeof data !== 'object') return 0
   const d = data as { type?: unknown; height?: unknown }
   if (d.type !== MSG_CARD_HEIGHT) return 0
-  return typeof d.height === 'number' &&
-    Number.isFinite(d.height) &&
-    d.height > 0
+  return typeof d.height === 'number' && Number.isFinite(d.height) && d.height > 0
     ? Math.ceil(d.height)
     : 0
 }
@@ -97,9 +94,7 @@ export function isThemeReady(data: unknown): boolean {
  * BUILT HERE rather than in the console so the `type` discriminator cannot be forgotten: a payload
  * without it is a card that renders nothing, with no error on either side.
  */
-export function cardDataMessage(
-  p: CardPayload,
-): CardPayload & { type: typeof MSG_CARD_DATA } {
+export function cardDataMessage(p: CardPayload): CardPayload & { type: typeof MSG_CARD_DATA } {
   return { type: MSG_CARD_DATA, ...p }
 }
 
@@ -110,24 +105,14 @@ export function cardDataMessage(
  * it, and a frame that learns the theme only from a postMessage flashes light first. `session` scopes
  * the card's API calls — it lives in the frame's own client, which reads `?session=`.
  */
-export function cardSrc(
-  ext: string,
-  template: string,
-  theme: string,
-  session = '',
-): string {
+export function cardSrc(ext: string, template: string, theme: string, session = ''): string {
   const q = new URLSearchParams({ theme })
   if (session !== '') q.set('session', session)
   return `/ext/${ext}/?${q.toString()}#/card/${encodeURIComponent(template)}`
 }
 
 /** The panel URL — the same frame, without a card route. */
-export function panelSrc(
-  ext: string,
-  route: string,
-  theme: string,
-  session = '',
-): string {
+export function panelSrc(ext: string, route: string, theme: string, session = ''): string {
   const q = new URLSearchParams({ theme })
   if (session !== '') q.set('session', session)
   const r = route.startsWith('/') ? route : `/${route}`
