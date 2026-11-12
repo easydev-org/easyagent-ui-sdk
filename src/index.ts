@@ -27,6 +27,13 @@ export {
 } from './card.js'
 export * from './protocol.js'
 export {
+  closeView,
+  onSessionContext,
+  sessionContext,
+  setSelection,
+  setViewTitle,
+} from './session.js'
+export {
   announceThemeReady,
   applyTheme,
   currentTheme,

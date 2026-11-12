@@ -16,8 +16,13 @@ import {
   MSG_CARD_HEIGHT,
   MSG_CARD_READY,
   MSG_OPEN_VIEW,
+  MSG_SELECTION,
+  MSG_SESSION,
   MSG_THEME_READY,
+  MSG_VIEW_CLOSE,
+  MSG_VIEW_TITLE,
   type OpenViewRequest,
+  type SessionContext,
 } from './protocol.js'
 
 export {
@@ -26,9 +31,14 @@ export {
   MSG_CARD_HEIGHT,
   MSG_CARD_READY,
   MSG_OPEN_VIEW,
+  MSG_SELECTION,
+  MSG_SESSION,
   MSG_THEME,
   MSG_THEME_READY,
+  MSG_VIEW_CLOSE,
+  MSG_VIEW_TITLE,
   type OpenViewRequest,
+  type SessionContext,
   type ThemeMode,
 } from './protocol.js'
 
@@ -86,6 +96,52 @@ export function isThemeReady(data: unknown): boolean {
     typeof data === 'object' &&
     (data as { type?: unknown }).type === MSG_THEME_READY
   )
+}
+
+/**
+ * A selection a frame reports, or null.
+ *
+ * AN EMPTY `id` IS VALID AND MEANS "CLEARED". `setSelection(ns, '')` on the frame side sends it that
+ * way, and treating it as malformed would leave the host holding a stale value the panel has already
+ * moved on from.
+ */
+export function selectionFrom(data: unknown): { namespace: string; id: string } | null {
+  if (data === null || typeof data !== 'object') return null
+  const d = data as { type?: unknown; namespace?: unknown; id?: unknown }
+  if (d.type !== MSG_SELECTION) return null
+  if (typeof d.namespace !== 'string' || d.namespace === '') return null
+  if (typeof d.id !== 'string') return null
+  return { namespace: d.namespace, id: d.id }
+}
+
+/** True when `data` is a frame asking to be closed. */
+export function isViewClose(data: unknown): boolean {
+  return (
+    data !== null &&
+    typeof data === 'object' &&
+    (data as { type?: unknown }).type === MSG_VIEW_CLOSE
+  )
+}
+
+/** A requested view title, or null when the message is not one or the title is blank. */
+export function viewTitleFrom(data: unknown): string | null {
+  if (data === null || typeof data !== 'object') return null
+  const d = data as { type?: unknown; title?: unknown }
+  if (d.type !== MSG_VIEW_TITLE) return null
+  if (typeof d.title !== 'string' || d.title.trim() === '') return null
+  return d.title.trim()
+}
+
+/**
+ * The session context, in the shape the frame's `sessionContext()` accepts.
+ *
+ * Built here for the same reason `cardDataMessage` is: a payload whose `type` is forgotten renders
+ * nothing, and the failure is silent on both sides.
+ */
+export function sessionContextMessage(c: SessionContext): SessionContext & {
+  type: typeof MSG_SESSION
+} {
+  return { type: MSG_SESSION, sessionId: c.sessionId, selections: { ...c.selections } }
 }
 
 /**

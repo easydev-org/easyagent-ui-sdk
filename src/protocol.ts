@@ -42,6 +42,33 @@ export const MSG_CARD_READY = 'easyagent:card-ready'
 export const MSG_CARD_DATA = 'easyagent:card-data'
 
 /**
+ * Host → frame: the SESSION this view belongs to, plus whatever the extensions have selected in it.
+ *
+ * A SIDE VIEW IS SCOPED TO ONE CONVERSATION and needs more than its id: the sandbox panel has to know
+ * which machine is being looked at, and the host has no idea what a machine is. So the host relays a
+ * NAMESPACE → ID map it never interprets.
+ *
+ * Sent once when the frame is ready, and again whenever a selection changes, so a panel never has to
+ * poll or ask.
+ */
+export const MSG_SESSION = 'easyagent:session'
+
+/** Frame → host: "in namespace X, id Y is now selected." */
+export const MSG_SELECTION = 'easyagent:selection'
+
+/**
+ * Frame → host: "close this view."
+ *
+ * A side view can be dismissed by the host's own chrome, but only the frame knows when its work is
+ * done — a panel that finished a job and has nothing left to show should be able to say so rather
+ * than leaving the user to find the close button.
+ */
+export const MSG_VIEW_CLOSE = 'easyagent:view-close'
+
+/** Frame → host: "title this view X." A panel that opened on a machine should name that machine. */
+export const MSG_VIEW_TITLE = 'easyagent:view-title'
+
+/**
  * Frame → host: "open one of my views at this route."
  *
  * A CARD CANNOT NAVIGATE BY ITSELF. It is rendered inside a frame a few hundred pixels tall, so an
@@ -78,7 +105,40 @@ export interface OpenViewRequest {
 /** The colour scheme a frame should use. */
 export type ThemeMode = 'light' | 'dark'
 
+/**
+ * What a view is scoped to: the conversation, and what has been selected inside it.
+ *
+ * `selections` is NAMESPACED and the host does not interpret it. An extension declares a namespace in
+ * its `ui.json` and reads its own entry here; the host only stores and relays. That is what lets a
+ * sandbox panel know which machine to draw without the console learning what a machine is.
+ */
+export interface SessionContext {
+  /** The conversation this view was opened for. Empty when it was opened from the shelf. */
+  sessionId: string
+  /** namespace -> id. Values are opaque to the host. */
+  selections: Record<string, string>
+}
+
 /** Narrow an unknown value to a theme, or null. */
 export function asThemeMode(v: unknown): ThemeMode | null {
   return v === 'light' || v === 'dark' ? v : null
+}
+
+/**
+ * Read a session context, or null.
+ *
+ * Defaults are applied rather than rejected: a host that sends only `sessionId` is the ordinary case
+ * for an extension that declares no namespaces, and refusing it would make every such panel handle a
+ * null it does not need.
+ */
+export function asSessionContext(v: unknown): SessionContext | null {
+  if (v === null || typeof v !== 'object') return null
+  const d = v as { sessionId?: unknown; selections?: unknown }
+  const selections: Record<string, string> = {}
+  if (d.selections !== null && typeof d.selections === 'object') {
+    for (const [k, val] of Object.entries(d.selections as Record<string, unknown>)) {
+      if (typeof val === 'string' && val !== '') selections[k] = val
+    }
+  }
+  return { sessionId: typeof d.sessionId === 'string' ? d.sessionId : '', selections }
 }
